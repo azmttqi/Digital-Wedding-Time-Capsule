@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Check, X, Clock, CheckCircle, XCircle } from "lucide-react";
 import { getMissionById } from "@/lib/missions";
+import ThemeInjector from "@/components/ThemeInjector";
 
 type Photo = {
   id: string;
@@ -12,6 +13,7 @@ type Photo = {
   status: string;
   createdAt: string;
   missionId?: string;
+  caption?: string;
 };
 
 export default function ModeratorDashboard({ params }: { params: { slug: string } }) {
@@ -23,11 +25,17 @@ export default function ModeratorDashboard({ params }: { params: { slug: string 
   const [approvedPhotos, setApprovedPhotos] = useState<Photo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const handlePinSubmit = (e: React.FormEvent) => {
+  const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput === "1234") { // Hardcoded for this demo, matches backend default
-      setIsLocked(false);
-    } else {
+    try {
+      const res = await axios.post(`http://localhost:3001/events/${params.slug}/verify`, {
+        role: "mod",
+        pin: pinInput
+      });
+      if (res.data.success) {
+        setIsLocked(false);
+      }
+    } catch (err) {
       setPinError("PIN salah. Coba lagi.");
       setPinInput("");
     }
@@ -79,6 +87,7 @@ export default function ModeratorDashboard({ params }: { params: { slug: string 
   if (isLocked) {
     return (
       <div className="min-h-screen bg-cream flex flex-col items-center justify-center p-6 text-center">
+        <ThemeInjector slug={params.slug} />
         <div className="max-w-sm w-full bg-white rounded-3xl shadow-xl overflow-hidden p-8 border border-champagne/50">
           <h1 className="font-heading text-3xl text-rose mb-2">Akses Moderator</h1>
           <p className="text-gray-500 mb-8 font-body">Masukkan PIN untuk mengelola foto.</p>
@@ -86,11 +95,10 @@ export default function ModeratorDashboard({ params }: { params: { slug: string 
           <form onSubmit={handlePinSubmit} className="flex flex-col gap-4">
             <input 
               type="password" 
-              maxLength={4}
               value={pinInput}
               onChange={(e) => setPinInput(e.target.value)}
-              placeholder="••••"
-              className="w-full text-center text-3xl tracking-[1em] p-4 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:border-rose focus:ring-1 focus:ring-rose"
+              placeholder="PIN / Password..."
+              className="w-full text-center text-xl p-4 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:border-rose focus:ring-1 focus:ring-rose"
               autoFocus
             />
             {pinError && <p className="text-red-500 text-sm font-body">{pinError}</p>}
@@ -111,8 +119,9 @@ export default function ModeratorDashboard({ params }: { params: { slug: string 
   }
 
   return (
-    <div className="min-h-screen bg-cream p-6 md:p-10">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 font-body p-4 sm:p-8">
+      <ThemeInjector slug={params.slug} />
+      <div className="max-w-5xl mx-auto">
         <h1 className="font-heading text-4xl text-rose mb-2">Moderator Dashboard</h1>
         <p className="text-gray-600 font-body mb-8">Acara: {params.slug}</p>
 
@@ -141,8 +150,11 @@ export default function ModeratorDashboard({ params }: { params: { slug: string 
                           <span>{mission.icon}</span> {mission.text}
                         </div>
                       )}
-                      <p className="text-sm text-gray-500 font-body text-xs">Pengunggah: {photo.uploaderSessionId}</p>
-                      <div className="flex gap-2">
+                      {photo.caption && (
+                        <p className="text-sm text-gray-800 font-medium italic">"{photo.caption}"</p>
+                      )}
+                      <p className="text-gray-500 font-body text-xs">Pengunggah: {photo.uploaderSessionId}</p>
+                      <div className="flex gap-2 mt-auto">
                         <button 
                           onClick={() => handleUpdateStatus(photo.id, 'REJECTED')}
                           className="flex-1 flex justify-center items-center gap-1 bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium hover:bg-red-200 transition"

@@ -6,7 +6,7 @@ export class PhotosController {
   constructor(private readonly photosService: PhotosService) {}
 
   @Post()
-  async createPhoto(@Body() body: { eventSlug: string; url: string; uploaderName?: string; missionId?: string }) {
+  async createPhoto(@Body() body: { eventSlug: string; url: string; uploaderName?: string; missionId?: string; caption?: string }) {
     return this.photosService.createPhotoRecord(body);
   }
 

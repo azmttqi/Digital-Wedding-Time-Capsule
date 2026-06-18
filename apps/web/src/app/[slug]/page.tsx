@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Camera, Image as ImageIcon, UploadCloud, X, Download, ImageIcon as GalleryIcon, Aperture } from "lucide-react";
+import { Camera, Image as ImageIcon, UploadCloud, X, Download, ImageIcon as GalleryIcon, Aperture, CheckCircle2 } from "lucide-react";
 import axios from "axios";
 import { supabase } from "@/lib/supabase";
 import Webcam from "react-webcam";
 import { predefinedMissions, getMissionById } from "@/lib/missions";
+import QRCode from "react-qr-code";
+import ThemeInjector from "@/components/ThemeInjector";
 
 type Photo = {
   id: string;
@@ -20,6 +22,19 @@ export default function GuestView({ params }: { params: { slug: string } }) {
   const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [activeMission, setActiveMission] = useState<string | null>(null);
+  const [uploaderName, setUploaderName] = useState("");
+  const [caption, setCaption] = useState("");
+  const [hasSignedGuestbook, setHasSignedGuestbook] = useState<boolean | null>(null);
+  
+  // Guestbook Form State
+  const [guestName, setGuestName] = useState("");
+  const [guestMessage, setGuestMessage] = useState("");
+  const [attendanceCount, setAttendanceCount] = useState("1");
+  const [isSubmittingGuestbook, setIsSubmittingGuestbook] = useState(false);
+
+  const [ticketId, setTicketId] = useState<string | null>(null);
+  const [isTicketClaimed, setIsTicketClaimed] = useState(false);
+
   const [approvedPhotos, setApprovedPhotos] = useState<Photo[]>([]);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
@@ -53,12 +68,74 @@ export default function GuestView({ params }: { params: { slug: string } }) {
   };
 
   useEffect(() => {
+    // Check Guestbook Status
+    const savedName = localStorage.getItem(`guest_name_${params.slug}`);
+    const savedCaption = localStorage.getItem(`guest_message_${params.slug}`);
+    const savedTicketId = localStorage.getItem(`guest_ticket_${params.slug}`);
+    const savedClaimStatus = localStorage.getItem(`guest_ticket_claimed_${params.slug}`) === 'true';
+
+    if (savedName) {
+      setUploaderName(savedName);
+      setCaption(savedCaption || "");
+      if (savedTicketId) setTicketId(savedTicketId);
+      if (savedClaimStatus) setIsTicketClaimed(true);
+      setHasSignedGuestbook(true);
+    } else {
+      setHasSignedGuestbook(false);
+    }
+
     if (activeTab === 'GALLERY') {
       axios.get(`http://localhost:3001/photos/${params.slug}?status=APPROVED`)
         .then(res => setApprovedPhotos(res.data))
         .catch(err => console.error("Gagal memuat galeri:", err));
     }
   }, [activeTab, params.slug]);
+
+  // Polling for Ticket Claim Status
+  useEffect(() => {
+    if (ticketId && !isTicketClaimed) {
+      const interval = setInterval(async () => {
+        try {
+          const res = await axios.get(`http://localhost:3001/guestbook/entry/${ticketId}`);
+          if (res.data && res.data.souvenirClaimed) {
+            setIsTicketClaimed(true);
+            localStorage.setItem(`guest_ticket_claimed_${params.slug}`, 'true');
+            clearInterval(interval);
+          }
+        } catch (error) {
+          console.error("Gagal polling tiket", error);
+        }
+      }, 2000); // poll every 2 seconds
+      
+      return () => clearInterval(interval);
+    }
+  }, [ticketId, isTicketClaimed, params.slug]);
+
+  const submitGuestbook = async () => {
+    if (!guestName.trim()) return alert("Mohon lengkapi nama Anda.");
+    setIsSubmittingGuestbook(true);
+    try {
+      const res = await axios.post("http://localhost:3001/guestbook", {
+        eventSlug: params.slug,
+        name: guestName.trim(),
+        message: guestMessage.trim(),
+        attendanceCount: parseInt(attendanceCount, 10),
+      });
+      localStorage.setItem(`guest_name_${params.slug}`, guestName.trim());
+      localStorage.setItem(`guest_message_${params.slug}`, guestMessage.trim());
+      localStorage.setItem(`guest_ticket_${params.slug}`, res.data.id);
+      
+      setUploaderName(guestName.trim());
+      setCaption(guestMessage.trim());
+      setTicketId(res.data.id);
+      setHasSignedGuestbook(true);
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan, silakan coba lagi.");
+    } finally {
+      setIsSubmittingGuestbook(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -95,8 +172,9 @@ export default function GuestView({ params }: { params: { slug: string } }) {
       await axios.post('http://localhost:3001/photos', {
         eventSlug: params.slug,
         url: publicUrlData.publicUrl,
-        uploaderName: 'Guest', 
+        uploaderName: uploaderName.trim() || 'Guest', 
         missionId: activeMission,
+        caption: caption.trim() || undefined,
       });
 
       alert("Foto berhasil diunggah! Menunggu persetujuan moderator.");
@@ -112,14 +190,109 @@ export default function GuestView({ params }: { params: { slug: string } }) {
     }
   };
 
+  if (hasSignedGuestbook === null) {
+    return (
+      <div className="min-h-screen bg-cream flex items-center justify-center font-body text-gray-500">
+        <ThemeInjector slug={params.slug} />
+        Memuat...
+      </div>
+    );
+  }
+
+  if (hasSignedGuestbook === false) {
+    return (
+      <div className="min-h-screen bg-cream font-body flex justify-center items-center p-4">
+        <ThemeInjector slug={params.slug} />
+        <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-xl border border-champagne/50">
+          <h1 className="font-heading text-3xl text-rose mb-2 text-center">Buku Tamu</h1>
+          <p className="text-gray-500 text-sm text-center mb-8">Silakan isi kehadiran Anda sebelum mulai membagikan momen.</p>
+
+          <div className="flex flex-col gap-5">
+            <div>
+              <label className="block text-gray-700 text-sm font-medium mb-1.5">Nama Tamu</label>
+              <input 
+                type="text" 
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                placeholder="Misal: Budi & Istri"
+                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-rose focus:ring-1 focus:ring-rose"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 text-sm font-medium mb-1.5">Jumlah Kehadiran</label>
+              <select 
+                value={attendanceCount}
+                onChange={(e) => setAttendanceCount(e.target.value)}
+                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-rose focus:ring-1 focus:ring-rose appearance-none"
+              >
+                <option value="1">1 Orang</option>
+                <option value="2">2 Orang</option>
+                <option value="3">3 Orang</option>
+                <option value="4">4 Orang</option>
+                <option value="5">Lebih dari 4 Orang</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-gray-700 text-sm font-medium mb-1.5">Pesan & Doa (Opsional)</label>
+              <textarea 
+                value={guestMessage}
+                onChange={(e) => setGuestMessage(e.target.value)}
+                placeholder="Tuliskan ucapan selamat untuk pengantin..."
+                rows={3}
+                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-rose focus:ring-1 focus:ring-rose resize-none"
+              />
+            </div>
+
+            <button 
+              onClick={submitGuestbook}
+              disabled={isSubmittingGuestbook}
+              className="mt-2 w-full bg-rose text-white py-3.5 rounded-xl font-medium hover:bg-opacity-90 transition shadow-md disabled:opacity-70"
+            >
+              {isSubmittingGuestbook ? "Menyimpan..." : "Dapatkan Tiket Souvenir"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (hasSignedGuestbook && ticketId && !isTicketClaimed) {
+    return (
+      <div className="min-h-screen bg-cream font-body flex justify-center items-center p-4">
+        <ThemeInjector slug={params.slug} />
+        <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-xl border border-champagne/50 flex flex-col items-center text-center animate-in fade-in zoom-in duration-500">
+          <div className="w-16 h-16 bg-rose/10 rounded-full flex items-center justify-center mb-4">
+            <CheckCircle2 className="text-rose" size={32} />
+          </div>
+          <h1 className="font-heading text-2xl text-gray-800 mb-2">Terima Kasih, {uploaderName}!</h1>
+          <p className="text-gray-500 text-sm mb-8">
+            Silakan tunjukkan QR Code ini kepada petugas suvenir untuk menukarkan suvenir Anda.
+          </p>
+          
+          <div className="bg-white p-4 rounded-2xl shadow-sm border-2 border-dashed border-gray-200 mb-6 flex justify-center w-full max-w-[250px] aspect-square items-center">
+            <QRCode value={ticketId} size={180} />
+          </div>
+
+          <p className="text-xs text-gray-400 mt-2 flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full border-2 border-rose border-t-transparent animate-spin inline-block"></span>
+            Menunggu petugas memindai tiket Anda...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-cream font-body flex justify-center">
+      <ThemeInjector slug={params.slug} />
       <div className="w-full max-w-md bg-cream min-h-screen shadow-2xl relative pb-20">
         <div className="bg-white px-6 pt-10 pb-6 rounded-b-3xl shadow-sm border-b border-champagne/50">
           <h1 className="font-heading text-3xl text-rose mb-1 text-center">
             Pernikahan {params.slug.replace(/-/g, ' ')}
           </h1>
-          <p className="text-gray-500 text-sm text-center mb-6">Bagikan momen terbaik Anda!</p>
+          <p className="text-gray-500 text-sm text-center mb-6">Halo, <span className="font-bold text-rose">{uploaderName}</span>! Bagikan momen terbaik Anda.</p>
 
           <div className="flex bg-gray-100 p-1 rounded-xl">
             <button 
@@ -211,6 +384,8 @@ export default function GuestView({ params }: { params: { slug: string } }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={preview} alt="Preview" className="w-full h-full object-cover" />
             </div>
+
+
             
             <div className="flex gap-3">
               <button 

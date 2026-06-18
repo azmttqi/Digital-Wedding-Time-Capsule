@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        rose: "#D4A5C9",
+        rose: "rgb(var(--theme-color-rgb) / <alpha-value>)",
         champagne: "#F5E6CA",
         sage: "#7D9E8C",
         cream: "#FAFAF8",

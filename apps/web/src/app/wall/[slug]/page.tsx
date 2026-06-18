@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Heart } from "lucide-react";
 import { getMissionById } from "@/lib/missions";
+import ThemeInjector from "@/components/ThemeInjector";
 
 type Photo = {
   id: string;
   storageKey: string;
   uploaderSessionId: string;
   missionId?: string;
+  caption?: string;
 };
 
 export default function LiveWall({ params }: { params: { slug: string } }) {
@@ -34,6 +36,7 @@ export default function LiveWall({ params }: { params: { slug: string } }) {
 
   return (
     <div className="min-h-screen bg-[#111] overflow-hidden flex flex-col">
+      <ThemeInjector slug={params.slug} />
       {/* Header Live Wall */}
       <div className="absolute top-0 left-0 w-full p-8 z-10 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
         <h1 className="font-heading text-4xl text-champagne drop-shadow-lg">
@@ -81,8 +84,13 @@ export default function LiveWall({ params }: { params: { slug: string } }) {
                   </div>
                 )}
 
-                <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <p className="text-white font-body text-xs font-medium tracking-wide">📸 {photo.uploaderSessionId}</p>
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  {photo.caption && (
+                    <p className="text-white text-lg font-medium leading-tight mb-2 drop-shadow-md">"{photo.caption}"</p>
+                  )}
+                  <div className="inline-flex items-center bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
+                    <p className="text-white/90 font-body text-xs font-medium tracking-wide">📸 {photo.uploaderSessionId}</p>
+                  </div>
                 </div>
               </div>
             )})}

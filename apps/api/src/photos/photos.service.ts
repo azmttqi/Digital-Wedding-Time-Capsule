@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class PhotosService {
   constructor(private prisma: PrismaService) {}
 
-  async createPhotoRecord(data: { eventSlug: string; url: string; uploaderName?: string; missionId?: string }) {
+  async createPhotoRecord(data: { eventSlug: string; url: string; uploaderName?: string; missionId?: string; caption?: string }) {
     // 1. Ensure the event exists
     let event = await this.prisma.event.findUnique({
       where: { slug: data.eventSlug },
@@ -30,8 +30,8 @@ export class PhotosService {
       data: {
         eventId: event.id,
         storageKey: data.url, // Using url as storageKey for now
-        uploaderSessionId: data.uploaderName || 'guest-session',
-        caption: null,
+        uploaderSessionId: data.uploaderName || 'Guest',
+        caption: data.caption || null,
         missionId: data.missionId || null,
         status: 'PENDING', // Default status for moderation
       },

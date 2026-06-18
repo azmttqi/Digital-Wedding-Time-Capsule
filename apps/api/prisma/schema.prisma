@@ -17,11 +17,25 @@ model Event {
   coupleName      String
   date            DateTime
   coverImageUrl   String?
-  moderatorPin    String   // 4-digit, stored hashed
-  couplePassword  String   // bcrypt hashed
+  moderatorPin    String   // Default "1234" diatur di service/controller saat pertama kali
+  couplePassword  String   // Default "password" diatur di service/controller
   missionsJson    Json
+  theme           String   @default("rose") // rose, sage, ocean, lavender, gold
   createdAt       DateTime @default(now())
   photos          Photo[]
+  guestbookEntries GuestbookEntry[]
+}
+
+model GuestbookEntry {
+  id              String   @id @default(cuid())
+  eventId         String
+  name            String
+  message         String?
+  attendanceCount Int      @default(1)
+  souvenirClaimed Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  
+  event           Event    @relation(fields: [eventId], references: [id])
 }
 
 model Photo {

@@ -5,6 +5,7 @@
 :root {
   --background: #FAFAF8; /* cream */
   --foreground: #171717;
+  --theme-color-rgb: 212 165 201; /* rose default */
 }
 
 body {
