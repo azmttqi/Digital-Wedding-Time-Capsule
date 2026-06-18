@@ -1,6 +1,18 @@
 # 💍 Digital Wedding Time Capsule
 
-**Satu platform untuk mengabadikan setiap momen berharga di hari bahagia Anda.**
+> **Satu platform untuk mengabadikan setiap momen berharga di hari bahagia Anda.**  
+> Buku tamu digital interaktif dan platform pengumpulan foto berbasis web secara real-time.
+
+![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)
+![NestJS](https://img.shields.io/badge/NestJS-10-ea2845?style=flat-square&logo=nestjs)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38bdf8?style=flat-square&logo=tailwindcss)
+![Prisma](https://img.shields.io/badge/Prisma-5-2d3748?style=flat-square&logo=prisma)
+![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
+
+---
+
+## 📋 Deskripsi
 
 Digital Wedding Time Capsule adalah buku tamu digital interaktif dan platform pengumpulan foto berbasis web. Tidak perlu lagi buku tamu fisik yang membosankan atau foto-foto tamu yang hilang di grup WhatsApp — semua momen terkumpul secara *real-time* di satu tempat.
 
