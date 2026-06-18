@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Event {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  coupleName      String
+  date            DateTime
+  coverImageUrl   String?
+  moderatorPin    String   // 4-digit, stored hashed
+  couplePassword  String   // bcrypt hashed
+  missionsJson    Json
+  createdAt       DateTime @default(now())
+  photos          Photo[]
+}
+
+model Photo {
+  id               String      @id @default(cuid())
+  eventId          String
+  uploaderSessionId String
+  storageKey       String
+  thumbnailKey     String?
+  caption          String?
+  missionId        String?
+  status           PhotoStatus @default(PENDING)
+  createdAt        DateTime    @default(now())
+  event            Event       @relation(fields: [eventId], references: [id])
+}
+
+enum PhotoStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
