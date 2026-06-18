@@ -60,6 +60,23 @@ export class PhotosService {
     });
   }
 
+  async getCapturesCount(range: 'today' | 'all' = 'today') {
+    if (range === 'all') {
+      return this.prisma.photo.count();
+    }
+    
+    // today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return this.prisma.photo.count({
+      where: {
+        createdAt: {
+          gte: today,
+        }
+      }
+    });
+  }
+
   async updatePhotoStatus(id: string, status: 'APPROVED' | 'REJECTED') {
     return this.prisma.photo.update({
       where: { id },

@@ -10,6 +10,13 @@ export class PhotosController {
     return this.photosService.createPhotoRecord(body);
   }
 
+  @Get('stats/count')
+  async getStats(@Query('range') range?: string) {
+    const validRange = range === 'all' ? 'all' : 'today';
+    const count = await this.photosService.getCapturesCount(validRange);
+    return { count };
+  }
+
   @Get(':eventSlug')
   async getPhotos(@Param('eventSlug') eventSlug: string, @Query('status') status: string) {
     if (status === 'PENDING') {

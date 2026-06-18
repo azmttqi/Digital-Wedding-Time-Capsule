@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { CheckCircle, QrCode, Scan, XCircle } from "lucide-react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import ThemeInjector from "@/components/ThemeInjector";
+import { useRouter } from "next/navigation";
 
 export default function SouvenirScanner({ params }: { params: { slug: string } }) {
   const [isLocked, setIsLocked] = useState(true);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState("");
   const [scanResult, setScanResult] = useState<{ success: boolean; message: string; name?: string; pax?: number } | null>(null);
+  const router = useRouter();
   
   // Manual Fallback List
   const [unclaimedGuests, setUnclaimedGuests] = useState<any[]>([]);
@@ -68,7 +69,6 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
     );
 
     const onScanSuccess = async (decodedText: string) => {
-      // Pause scanning while processing
       scanner.pause();
       
       try {
@@ -82,6 +82,7 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
             success: false, 
             message: `Souvenir sudah pernah diambil oleh ${entry.name} pada ${new Date(entry.createdAt).toLocaleString('id-ID')}` 
           });
+        } else {
           // Claim it!
           await axios.patch(`http://localhost:3001/guestbook/entry/${decodedText}/claim`);
           setScanResult({
@@ -97,7 +98,6 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
         setScanResult({ success: false, message: "Gagal memverifikasi tiket." });
       }
 
-      // Automatically clear result and resume after 4 seconds
       setTimeout(() => {
         setScanResult(null);
         scanner.resume();
@@ -113,30 +113,30 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
 
   if (isLocked) {
     return (
-      <div className="min-h-screen bg-cream flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-surface-container flex flex-col items-center justify-center p-6 text-center font-body-md text-on-surface">
         <ThemeInjector slug={params.slug} />
-        <div className="max-w-sm w-full bg-white rounded-3xl shadow-xl overflow-hidden p-8 border border-champagne/50">
-          <div className="flex justify-center mb-4 text-rose">
-            <QrCode size={48} />
+        <div className="max-w-sm w-full bg-surface-container-lowest rounded-[24px] shadow-xl overflow-hidden p-8 border border-outline-variant/30">
+          <div className="w-16 h-16 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="material-symbols-outlined text-3xl">qr_code_scanner</span>
           </div>
-          <h1 className="font-heading text-3xl text-rose mb-2">Petugas Souvenir</h1>
-          <p className="text-gray-500 mb-8 font-body">Masukkan PIN rahasia petugas.</p>
+          <h1 className="font-headline-md text-headline-md text-primary mb-2">Scanner Login</h1>
+          <p className="text-on-surface-variant font-label-md mb-8">Enter the Moderator PIN.</p>
           
           <form onSubmit={handlePinSubmit} className="flex flex-col gap-4">
             <input 
               type="password" 
               value={pinInput}
               onChange={(e) => setPinInput(e.target.value)}
-              placeholder="PIN / Password..."
-              className="w-full text-center text-xl p-4 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:border-rose focus:ring-1 focus:ring-rose"
+              placeholder="Enter PIN..."
+              className="w-full text-center text-xl p-4 bg-surface-container-high rounded-xl border border-outline-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-on-surface tracking-widest font-mono"
               autoFocus
             />
-            {pinError && <p className="text-red-500 text-sm font-body">{pinError}</p>}
+            {pinError && <p className="text-error text-label-sm font-label-sm">{pinError}</p>}
             <button 
               type="submit"
-              className="w-full bg-rose text-white py-4 px-6 rounded-2xl font-medium hover:bg-opacity-90 transition shadow-md shadow-rose/20 mt-2"
+              className="w-full bg-primary text-on-primary py-4 px-6 rounded-2xl font-label-md hover:bg-primary/90 transition shadow-md mt-2"
             >
-              Nyalakan Scanner
+              Start Scanning
             </button>
           </form>
         </div>
@@ -145,78 +145,135 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-body">
+    <div className="bg-background text-on-background font-body-md min-h-screen selection:bg-primary-container selection:text-on-primary-container">
       <ThemeInjector slug={params.slug} />
-      <div className="max-w-md mx-auto">
-        <div className="bg-gray-800 rounded-3xl p-6 shadow-2xl text-center mb-6">
-          <h1 className="font-heading text-2xl text-white mb-2 flex items-center justify-center gap-2">
-            <Scan className="text-rose" /> Scanner Souvenir
-          </h1>
-          <p className="text-gray-400 text-sm">Arahkan kamera ke QR Code tamu.</p>
-        </div>
+      
 
-        {/* Scanner Container */}
-        <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-gray-800 relative w-full">
-          {scanResult ? (
-            <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300 ${scanResult.success ? 'bg-green-500' : 'bg-red-500'}`}>
-              {scanResult.success ? (
-                <CheckCircle className="text-white mb-4" size={64} />
-              ) : (
-                <XCircle className="text-white mb-4" size={64} />
-              )}
-              <h2 className="text-white font-heading text-3xl mb-2">{scanResult.success ? "VALID" : "DITOLAK"}</h2>
-              <p className="text-white/90 font-medium mb-4">{scanResult.message}</p>
+
+      {/* Main Content Area */}
+      <main className="min-h-screen px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto">
+        {/* Header */}
+        <header className="mb-stack-xl flex justify-between items-end">
+          <div>
+            <h2 className="text-headline-lg font-headline-lg text-on-surface mb-2">Souvenir Scanner</h2>
+            <p className="text-body-lg text-on-surface-variant max-w-2xl">Verify guest tickets and distribute souvenirs securely.</p>
+          </div>
+          <button onClick={() => router.push(`/`)} className="p-3 bg-surface-container text-on-surface-variant rounded-xl hover:bg-surface-container-high transition flex items-center gap-2 font-label-md">
+            <span className="material-symbols-outlined">arrow_back</span>
+            Dashboard
+          </button>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+          {/* Scanner View */}
+          <section className="lg:col-span-6 xl:col-span-5 space-y-stack-lg animate-in slide-in-from-left-8 duration-700">
+            <div className="bg-surface-container-lowest rounded-[24px] p-6 shadow-sm border border-outline-variant/20 relative overflow-hidden h-[500px]">
               
-              {scanResult.success && scanResult.name && (
-                <div className="bg-black/20 p-4 rounded-xl w-full">
-                  <p className="text-white text-sm opacity-80 mb-1">Berikan Suvenir Kepada:</p>
-                  <p className="text-white text-xl font-bold">{scanResult.name}</p>
-                  <p className="text-white text-md mt-1 font-medium bg-black/30 inline-block px-3 py-1 rounded-full">{scanResult.pax} Orang</p>
+              {scanResult ? (
+                <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-300 ${scanResult.success ? 'bg-secondary' : 'bg-error'}`}>
+                  <span className="material-symbols-outlined text-white text-6xl mb-4" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    {scanResult.success ? 'check_circle' : 'cancel'}
+                  </span>
+                  <h2 className="text-white font-headline-md text-3xl mb-2">{scanResult.success ? "VALID TICKET" : "INVALID / USED"}</h2>
+                  <p className="text-white/90 font-body-md text-lg mb-6">{scanResult.message}</p>
+                  
+                  {scanResult.success && scanResult.name && (
+                    <div className="bg-black/20 backdrop-blur-md p-6 rounded-2xl w-full max-w-xs mx-auto border border-white/20">
+                      <p className="text-white/80 text-label-sm font-label-sm uppercase tracking-widest mb-2">Give Souvenir To:</p>
+                      <p className="text-white text-2xl font-bold mb-2">{scanResult.name}</p>
+                      <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full mt-2">
+                        <span className="material-symbols-outlined text-white text-sm">group</span>
+                        <p className="text-white font-label-md font-bold">{scanResult.pax} Person{scanResult.pax! > 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="h-full flex flex-col">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="material-symbols-outlined text-primary">qr_code_scanner</span>
+                    <h3 className="text-headline-md font-headline-md text-on-surface">Camera Active</h3>
+                  </div>
+                  
+                  <div className="flex-1 rounded-2xl overflow-hidden border-4 border-surface-container-high relative group">
+                    <style dangerouslySetInnerHTML={{__html: `
+                      #reader { border: none !important; width: 100%; height: 100%; padding: 0 !important; }
+                      #reader button { background-color: var(--tw-primary, #7b5455); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; margin: 10px; font-family: Inter, sans-serif; font-size: 14px; }
+                      #reader a { color: var(--tw-primary, #7b5455); text-decoration: underline; display: none; }
+                      #reader select { padding: 8px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #d4c2c2; font-family: Inter; }
+                      #reader video { transform: scaleX(-1); object-fit: cover; width: 100%; height: 100%; }
+                      #reader__scan_region { background-color: #f5eceb; }
+                    `}} />
+                    <div id="reader" className="w-full h-full bg-surface-container" />
+                    
+                    {/* Decorative Scanner Overlay */}
+                    <div className="absolute inset-0 pointer-events-none border-[40px] border-black/30 mix-blend-overlay"></div>
+                  </div>
                 </div>
               )}
             </div>
-          ) : (
-            <>
-              <style dangerouslySetInnerHTML={{__html: `
-                #reader { border: none !important; width: 100%; padding: 0 !important; }
-                #reader button { background-color: #f43f5e; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 10px; }
-                #reader a { color: #f43f5e; text-decoration: underline; }
-                #reader select { padding: 8px; border-radius: 8px; margin-bottom: 10px; }
-                #reader video { transform: scaleX(-1); }
-              `}} />
-              <div id="reader" className="w-full bg-white text-gray-800 [&_video]:object-cover [&_video]:w-full" />
-            </>
-          )}
+          </section>
+
+          {/* Manual Fallback List */}
+          <section className="lg:col-span-6 xl:col-span-7 space-y-stack-lg animate-in slide-in-from-right-8 duration-700 delay-100">
+            <div className="bg-surface-container-lowest rounded-[24px] p-8 shadow-sm border border-outline-variant/20 h-full">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-primary">list_alt</span>
+                  <h3 className="text-headline-md font-headline-md text-on-surface">Pending Claims</h3>
+                </div>
+                <span className="bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-label-sm font-label-sm font-bold">
+                  {unclaimedGuests.length} Guests
+                </span>
+              </div>
+              
+              {unclaimedGuests.length === 0 ? (
+                <div className="h-64 flex flex-col items-center justify-center text-on-surface-variant/50">
+                  <span className="material-symbols-outlined text-6xl mb-4">check_circle</span>
+                  <p className="font-label-md text-label-md">All souvenirs have been claimed.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 pb-4">
+                  {unclaimedGuests.map(g => (
+                    <div key={g.id} className="bg-surface-container p-4 rounded-2xl flex flex-col gap-3 border border-outline-variant/30 hover:border-primary/50 transition-colors">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-on-surface font-label-md font-bold mb-1 truncate max-w-[150px]">{g.name}</p>
+                          <div className="flex items-center gap-1 text-on-surface-variant">
+                            <span className="material-symbols-outlined text-[14px]">group</span>
+                            <span className="text-label-sm">{g.attendanceCount} Pax</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <button 
+                        onClick={() => handleManualClaim(g.id, g.name, g.attendanceCount)}
+                        className="w-full bg-white border border-outline-variant hover:border-primary text-primary px-3 py-2 rounded-xl text-label-sm font-label-md font-semibold transition-colors flex justify-center items-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
+                        Manual Claim
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
         </div>
 
-        {/* Manual Fallback List */}
-        <div className="mt-8 bg-gray-800 rounded-3xl p-6 shadow-2xl border-4 border-gray-700 w-full">
-          <h2 className="text-white font-heading text-xl mb-4 flex justify-between items-center">
-            Daftar Belum Klaim
-            <span className="bg-rose text-white text-xs px-2 py-1 rounded-full">{unclaimedGuests.length}</span>
-          </h2>
-          {unclaimedGuests.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center">Semua tamu sudah klaim suvenir.</p>
-          ) : (
-            <div className="flex flex-col gap-3 max-h-60 overflow-y-auto pr-2">
-              {unclaimedGuests.map(g => (
-                <div key={g.id} className="bg-gray-700 p-3 rounded-xl flex justify-between items-center">
-                  <div>
-                    <p className="text-white font-medium text-sm">{g.name}</p>
-                    <p className="text-gray-400 text-xs">{g.attendanceCount} Orang</p>
-                  </div>
-                  <button 
-                    onClick={() => handleManualClaim(g.id, g.name, g.attendanceCount)}
-                    className="bg-rose/20 text-rose hover:bg-rose/40 px-3 py-1.5 rounded-lg text-sm font-medium transition"
-                  >
-                    Klaim Manual
-                  </button>
-                </div>
-              ))}
+        {/* System Status Bar */}
+        <footer className="mt-stack-xl flex flex-col md:flex-row items-center justify-between py-6 border-t border-outline-variant/20 gap-4">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-label-sm text-on-surface-variant">Scanner Active</span>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+          <div className="flex items-center gap-6 text-label-sm font-semibold text-primary">
+            <span className="text-outline font-normal">© 2026 Digital Wedding Time Capsule Pro</span>
+          </div>
+        </footer>
+      </main>
     </div>
   );
 }

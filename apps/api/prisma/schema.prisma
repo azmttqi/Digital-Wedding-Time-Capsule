@@ -21,6 +21,10 @@ model Event {
   couplePassword  String   // Default "password" diatur di service/controller
   missionsJson    Json
   theme           String   @default("rose") // rose, sage, ocean, lavender, gold
+  venue           String?
+  expectedPax     Int      @default(0)
+  status          EventStatus @default(UPCOMING)
+  clientNotes     String?
   createdAt       DateTime @default(now())
   photos          Photo[]
   guestbookEntries GuestbookEntry[]
@@ -55,4 +59,10 @@ enum PhotoStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum EventStatus {
+  UPCOMING
+  LIVE
+  ENDED
 }

@@ -10,7 +10,11 @@ export class EventsService {
       select: {
         slug: true,
         coupleName: true,
-        date: true
+        date: true,
+        venue: true,
+        expectedPax: true,
+        coverImageUrl: true,
+        status: true
       },
       orderBy: {
         createdAt: 'desc'
@@ -23,10 +27,18 @@ export class EventsService {
       where: { slug }
     });
     if (!event) throw new NotFoundException('Event not found');
-    return { theme: event.theme, name: event.coupleName };
+    return { 
+      theme: event.theme, 
+      name: event.coupleName,
+      venue: event.venue,
+      expectedPax: event.expectedPax,
+      clientNotes: event.clientNotes,
+      coverImageUrl: event.coverImageUrl,
+      status: event.status
+    };
   }
 
-  async createEvent(data: { slug: string; coupleName: string; date: Date }) {
+  async createEvent(data: { slug: string; coupleName: string; date: Date; theme?: string; couplePassword?: string; moderatorPin?: string; venue?: string; expectedPax?: number }) {
     const existing = await this.prisma.event.findUnique({ where: { slug: data.slug } });
     if (existing) {
       return existing; // Already exists
@@ -36,10 +48,12 @@ export class EventsService {
         slug: data.slug,
         coupleName: data.coupleName,
         date: data.date,
-        moderatorPin: '1234',
-        couplePassword: 'password',
+        moderatorPin: data.moderatorPin || '1234',
+        couplePassword: data.couplePassword || 'password',
         missionsJson: [],
-        theme: 'rose',
+        theme: data.theme || 'rose',
+        venue: data.venue || '',
+        expectedPax: data.expectedPax || 0,
       }
     });
     return event;
@@ -66,11 +80,19 @@ export class EventsService {
     return { success: true, role };
   }
 
-  async updateSettings(slug: string, data: { couplePassword?: string; moderatorPin?: string; theme?: string }) {
+  async updateSettings(slug: string, data: { couplePassword?: string; moderatorPin?: string; theme?: string; clientNotes?: string; coverImageUrl?: string }) {
     const event = await this.prisma.event.update({
       where: { slug },
       data
     });
     return { success: true, theme: event.theme };
+  }
+
+  async updateStatus(slug: string, status: any) {
+    const event = await this.prisma.event.update({
+      where: { slug },
+      data: { status }
+    });
+    return { success: true, status: event.status };
   }
 }

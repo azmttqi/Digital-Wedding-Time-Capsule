@@ -16,11 +16,16 @@ export class EventsController {
   }
 
   @Post()
-  async createEvent(@Body() body: { slug: string; coupleName: string; date?: string }) {
+  async createEvent(@Body() body: { slug: string; coupleName: string; date?: string; theme?: string; couplePassword?: string; moderatorPin?: string; venue?: string; expectedPax?: number }) {
     return this.eventsService.createEvent({
       slug: body.slug,
       coupleName: body.coupleName,
       date: body.date ? new Date(body.date) : new Date(),
+      theme: body.theme,
+      couplePassword: body.couplePassword,
+      moderatorPin: body.moderatorPin,
+      venue: body.venue,
+      expectedPax: body.expectedPax ? Number(body.expectedPax) : 0,
     });
   }
 
@@ -35,7 +40,7 @@ export class EventsController {
   @Patch(':slug/settings')
   async updateSettings(
     @Param('slug') slug: string,
-    @Body() body: { couplePassword?: string; moderatorPin?: string; theme?: string }
+    @Body() body: { couplePassword?: string; moderatorPin?: string; theme?: string; clientNotes?: string; coverImageUrl?: string }
   ) {
     return this.eventsService.updateSettings(slug, body);
   }
