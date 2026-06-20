@@ -29,6 +29,17 @@ npm install
 
 ## 🗄️ Langkah 2: Konfigurasi Supabase & Environment Variables
 
+Terdapat dua skenario untuk langkah ini:
+
+### Skenario A: Anda adalah Anggota Tim (Kolaborator)
+Jika Anda bekerja dalam tim dan proyek Supabase sudah dibuat oleh Lead Developer:
+1. Anda **TIDAK PERLU** membuat akun Supabase atau melakukan *setup* database.
+2. Mintalah file `.env` (untuk backend) dan `.env.local` (untuk frontend) dari rekan tim Anda.
+3. Simpan file `.env` di dalam folder `apps/api/` dan file `.env.local` di dalam folder `apps/web/`.
+4. Anda bisa langsung melompat ke **Langkah 4: Menjalankan Server Lokal**. (Langkah migrasi tidak perlu dilakukan karena database sudah terpusat).
+
+### Skenario B: Anda Membangun Proyek Sendiri dari Nol
+Jika Anda ingin membuat *instance* database Anda sendiri yang terpisah:
 1. Buat proyek baru di [Supabase Dashboard](https://supabase.com/).
 2. Masuk ke menu **Storage** dan buat *bucket* baru dengan nama **`photos`**. Pastikan Anda mencentang opsi **Public**.
 3. Masuk ke menu **Project Settings -> API** untuk mendapatkan `Project URL` dan `anon` (public key).
@@ -62,6 +73,7 @@ Dorong (push) skema Prisma Anda agar Supabase membuatkan tabel-tabel yang diperl
 
 ```bash
 npm run --workspace=apps/api prisma db push
+npm run --workspace=apps/api prisma generate
 ```
 
 ---
@@ -72,21 +84,28 @@ Anda harus menjalankan kedua server (*Frontend* dan *Backend*) secara bersamaan.
 
 **Terminal 1 (Frontend - Next.js):**
 ```bash
-npm run dev --workspace=apps/web
+npm run dev:web
 ```
 *Frontend akan berjalan di http://localhost:3000*
 
 **Terminal 2 (Backend - NestJS):**
 ```bash
-npm run start:dev --workspace=apps/api
+npm run dev:api
 ```
 *Backend akan berjalan di http://localhost:3001*
 
 ---
 
 ## 🗺️ Struktur Navigasi Aplikasi
-Saat pengembangan, ganti `[slug]` dengan nama acara apa pun (misal: `pernikahan-budi`). Acara akan otomatis dibuat di database saat tamu pertama kali membukanya.
-- **Guest View**: `http://localhost:3000/[slug]`
-- **Mod Dashboard**: `http://localhost:3000/mod/[slug]` *(PIN Default: 1234)*
-- **Live Wall**: `http://localhost:3000/wall/[slug]`
-- **Bride Hub**: `http://localhost:3000/hub/[slug]` *(PIN Default: 1234)*
+Aplikasi ini memiliki arsitektur terpusat di mana Event Organizer mengelola acara dari dasbor utama.
+
+- **Organizer Dashboard**: `http://localhost:3000/` *(Pusat kendali seluruh acara)*
+- **Admin Settings**: `http://localhost:3000/admin/[slug]` *(Pengaturan tema, password, dan status acara)*
+- **Event Lobby**: `http://localhost:3000/lobby/[slug]` *(Pintu masuk ke semua portal)*
+
+**Portal Spesifik (Diakses via Lobby atau langsung):**
+- **Guest View**: `http://localhost:3000/[slug]` *(Wajib berstatus LIVE agar bisa diakses)*
+- **Mod Dashboard**: `http://localhost:3000/mod/[slug]` *(Moderasi foto)*
+- **Live Wall**: `http://localhost:3000/wall/[slug]` *(Tampilan proyektor)*
+- **Bride Hub**: `http://localhost:3000/hub/[slug]` *(Album memori B&G)*
+- **Souvenir Scanner**: `http://localhost:3000/souvenir/[slug]` *(Klaim tiket suvenir)*

@@ -126,7 +126,7 @@ export default function AdminDashboard({ params }: { params: { slug: string } })
 
   return (
     <div className="bg-background text-on-background font-body-md min-h-screen selection:bg-primary-container selection:text-on-primary-container">
-      <ThemeInjector slug={params.slug} />
+      <ThemeInjector slug={params.slug} themeOverride={formData.theme} />
       
 
 

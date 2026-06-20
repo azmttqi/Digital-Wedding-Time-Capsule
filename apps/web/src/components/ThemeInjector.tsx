@@ -12,8 +12,13 @@ const THEME_MAP: Record<string, string> = {
   monochrome: "31 41 55", // bg-gray-800
 };
 
-export default function ThemeInjector({ slug }: { slug: string }) {
+export default function ThemeInjector({ slug, themeOverride }: { slug: string, themeOverride?: string }) {
   useEffect(() => {
+    if (themeOverride && THEME_MAP[themeOverride]) {
+      document.documentElement.style.setProperty("--theme-color-rgb", THEME_MAP[themeOverride]);
+      return;
+    }
+
     if (!slug) return;
     
     axios.get(`http://localhost:3001/events/${slug}`)
@@ -24,7 +29,7 @@ export default function ThemeInjector({ slug }: { slug: string }) {
         }
       })
       .catch(err => console.error("Gagal memuat tema:", err));
-  }, [slug]);
+  }, [slug, themeOverride]);
 
   return null;
 }

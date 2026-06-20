@@ -44,4 +44,12 @@ export class EventsController {
   ) {
     return this.eventsService.updateSettings(slug, body);
   }
+
+  @Patch(':slug/status')
+  async updateStatus(
+    @Param('slug') slug: string,
+    @Body() body: { status: any }
+  ) {
+    return this.eventsService.updateStatus(slug, body.status);
+  }
 }

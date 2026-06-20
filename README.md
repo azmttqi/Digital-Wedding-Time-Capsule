@@ -51,10 +51,13 @@ Portal khusus petugas suvenir yang terhubung ke sistem tiket QR Code. Petugas cu
 Pusat kendali khusus bagi pengantin setelah acara selesai. Cukup dengan satu klik, pengantin dapat mengunduh (*download*) daftar kehadiran buku tamu (berupa Excel/CSV) dan seluruh koleksi foto momen ke dalam satu file `.ZIP` utuh. Terlindungi oleh *Password* eksklusif.
 
 ### ⚙️ Portal Admin & Tema Dinamis Global
-Kendali penuh di tangan EO atau pengantin. Tersedia Portal Admin untuk mengubah *password*, PIN panitia, dan memilih Palet Warna (*Theme*) aplikasi. Saat warna tema diganti (misal: Rose, Sage, Ocean), seluruh antarmuka aplikasi tamu dan panitia akan langsung berubah secara seketika (*real-time*)!
+Kendali penuh di tangan EO atau pengantin. Tersedia Portal Admin untuk mengubah *password*, PIN panitia, dan memilih Palet Warna (*Theme*) aplikasi. Saat warna tema diganti (misal: Rose, Sage, Ocean), seluruh antarmuka aplikasi tamu dan panitia akan langsung berubah secara seketika (*real-time*) tanpa perlu *refresh*!
 
-### 🏢 Multi-Acara & Lobi Cerdas
-Tidak perlu aplikasi terpisah untuk setiap klien. PWA ini memiliki Lobi Utama Cerdas berbentuk *dropdown*. EO dapat menampung, melacak, dan berganti antar berbagai acara pernikahan klien hanya dalam satu aplikasi yang sama, serta membuat ruangan pernikahan baru cukup dengan sekali klik!
+### 🚦 Manajemen Status Acara & Proteksi Ganda
+Aplikasi ini dilengkapi "Sakelar" cerdas (`Upcoming`, `Live Now`, `Ended`) untuk melindungi privasi acara. Jika acara belum dimulai (*Upcoming*), portal tamu akan terkunci seutuhnya dan menampilkan peringatan elegan, mencegah tamu usil mengunggah foto sebelum waktunya.
+
+### 🏢 Organizer Dashboard & Event Lobby
+Pusat komando terpadu untuk Event Organizer. Tidak perlu aplikasi terpisah untuk setiap klien. PWA ini memiliki dasbor canggih di mana EO dapat melacak statistik foto harian/keseluruhan, mengelola status berbagai acara klien, dan membuat ruangan pernikahan baru hanya dengan satu klik! Setiap acara memiliki Lobi khusus yang menjadi pintu masuk ke seluruh portal (Admin, Mod, Wall, dll).
 
 ---
 
@@ -63,6 +66,7 @@ Aplikasi ini dirancang fleksibel untuk pengembangan lebih lanjut, di antaranya:
 - [x] Fitur Buku Tamu Digital dengan QR Code Souvenir Terintegrasi
 - [x] Kustomisasi Tema Acara secara dinamis (Editor Tema UI / Palet Warna)
 - [x] Dukungan Multi-Acara (Event Dashboard untuk EO)
+- [x] Fitur Manajemen Status Acara (Upcoming/Live/Ended) & Kunci Portal
 - [ ] Integrasi Penyimpanan Cloud Eksternal Lanjutan (AWS S3, GCS)
 - [ ] Opsi Cetak Foto Langsung (Integrasi Photobooth API)
 
