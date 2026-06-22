@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 export default function EventLobby({ params }: { params: { slug: string } }) {
   const router = useRouter();
   const [eventData, setEventData] = useState<any>(null);
+  const [errorStatus, setErrorStatus] = useState<number | null>(null);
   const [stats, setStats] = useState({
     totalGuests: 0,
     totalPax: 0,
@@ -19,7 +20,12 @@ export default function EventLobby({ params }: { params: { slug: string } }) {
     // Fetch Event Data
     axios.get(`http://localhost:3001/events/${params.slug}`)
       .then(res => setEventData(res.data))
-      .catch(err => console.error("Error fetching event", err));
+      .catch(err => {
+        console.error("Error fetching event", err);
+        if (err.response && err.response.status === 404) {
+          setErrorStatus(404);
+        }
+      });
 
     // Fetch Guestbook Stats
     axios.get(`http://localhost:3001/guestbook/${params.slug}`)
@@ -42,6 +48,20 @@ export default function EventLobby({ params }: { params: { slug: string } }) {
       })
       .catch(err => console.error(err));
   }, [params.slug]);
+
+  if (errorStatus === 404) {
+    return (
+      <div className="min-h-screen bg-surface-container flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-24 h-24 bg-error-container rounded-full flex items-center justify-center mb-6 text-error">
+           <span className="material-symbols-outlined text-4xl">error</span>
+        </div>
+        <h1 className="text-headline-lg font-headline-lg text-primary mb-4">Lobby Tidak Ditemukan</h1>
+        <p className="text-body-lg text-on-surface-variant max-w-md">
+          Lobby untuk acara ini tidak ditemukan. Silakan periksa kembali tautan Anda.
+        </p>
+      </div>
+    );
+  }
 
   if (!eventData) {
     return (

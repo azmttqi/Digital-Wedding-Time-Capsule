@@ -11,18 +11,9 @@ export class PhotosService {
       where: { slug: data.eventSlug },
     });
 
-    // If event doesn't exist, create it (just to simplify testing)
+    // If event doesn't exist, throw error
     if (!event) {
-      event = await this.prisma.event.create({
-        data: {
-          slug: data.eventSlug,
-          coupleName: "Pasangan " + data.eventSlug,
-          date: new Date(),
-          moderatorPin: "1234",
-          couplePassword: "password",
-          missionsJson: [],
-        }
-      });
+      throw new Error('Event not found');
     }
 
     // 2. Create the photo record
@@ -40,23 +31,15 @@ export class PhotosService {
     return photo;
   }
 
-  async getApprovedPhotos(eventSlug: string) {
+  async getEventPhotos(eventSlug: string, status?: string) {
+    const whereClause: any = { event: { slug: eventSlug } };
+    if (status) {
+      whereClause.status = status;
+    }
+    const orderDirection = status === 'PENDING' ? 'asc' : 'desc';
     return this.prisma.photo.findMany({
-      where: {
-        event: { slug: eventSlug },
-        status: 'APPROVED',
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  async getPendingPhotos(eventSlug: string) {
-    return this.prisma.photo.findMany({
-      where: {
-        event: { slug: eventSlug },
-        status: 'PENDING',
-      },
-      orderBy: { createdAt: 'asc' },
+      where: whereClause,
+      orderBy: { createdAt: orderDirection },
     });
   }
 

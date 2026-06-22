@@ -15,6 +15,7 @@ type Photo = {
 
 export default function LiveWall({ params }: { params: { slug: string } }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [eventError, setEventError] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const fetchApprovedPhotos = async () => {
@@ -27,6 +28,13 @@ export default function LiveWall({ params }: { params: { slug: string } }) {
   };
 
   useEffect(() => {
+    axios.get(`http://localhost:3001/events/${params.slug}`)
+      .catch(err => {
+        if (err.response && err.response.status === 404) {
+          setEventError(true);
+        }
+      });
+
     fetchApprovedPhotos();
     const interval = setInterval(fetchApprovedPhotos, 5000);
     return () => clearInterval(interval);
@@ -63,6 +71,20 @@ export default function LiveWall({ params }: { params: { slug: string } }) {
   }, [photos.length]);
 
   const joinUrl = `http://localhost:3000/${params.slug}`;
+
+  if (eventError) {
+    return (
+      <div className="bg-[#111] text-white overflow-hidden font-body-md h-screen w-full flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-24 h-24 bg-red-900/30 rounded-full flex items-center justify-center mb-6 text-red-500 border border-red-500/20">
+           <span className="material-symbols-outlined text-4xl">error</span>
+        </div>
+        <h1 className="text-headline-lg font-headline-lg text-white mb-4">Acara Tidak Ditemukan</h1>
+        <p className="text-body-lg text-white/60 max-w-md">
+          Live Wall untuk acara ini tidak ditemukan. Silakan periksa kembali tautan Anda.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-on-background text-surface overflow-hidden font-body-md selection:bg-primary/30 h-screen w-full relative">

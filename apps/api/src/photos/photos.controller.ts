@@ -18,11 +18,8 @@ export class PhotosController {
   }
 
   @Get(':eventSlug')
-  async getPhotos(@Param('eventSlug') eventSlug: string, @Query('status') status: string) {
-    if (status === 'PENDING') {
-      return this.photosService.getPendingPhotos(eventSlug);
-    }
-    return this.photosService.getApprovedPhotos(eventSlug);
+  async getPhotos(@Param('eventSlug') eventSlug: string, @Query('status') status?: string) {
+    return this.photosService.getEventPhotos(eventSlug, status);
   }
 
   @Patch(':id/status')

@@ -24,7 +24,7 @@ export default function GuestView({ params }: { params: { slug: string } }) {
   const [activeMission, setActiveMission] = useState<string | null>(null);
   const [uploaderName, setUploaderName] = useState("");
   const [caption, setCaption] = useState("");
-  const [eventStatus, setEventStatus] = useState<'LOADING' | 'UPCOMING' | 'LIVE' | 'ENDED'>('LOADING');
+  const [eventStatus, setEventStatus] = useState<'LOADING' | 'UPCOMING' | 'LIVE' | 'ENDED' | 'NOT_FOUND'>('LOADING');
   const [eventName, setEventName] = useState<string | null>(null);
   const [hasSignedGuestbook, setHasSignedGuestbook] = useState<boolean>(false);
   
@@ -69,7 +69,11 @@ export default function GuestView({ params }: { params: { slug: string } }) {
       })
       .catch(err => {
          console.error("Gagal memuat status:", err);
-         setEventStatus('LIVE'); // Fallback if network error
+         if (err.response && err.response.status === 404) {
+           setEventStatus('NOT_FOUND');
+         } else {
+           setEventStatus('LIVE'); // Fallback if network error
+         }
       });
 
     axios.get(`http://localhost:3001/photos/${params.slug}?status=APPROVED`)
@@ -227,6 +231,21 @@ export default function GuestView({ params }: { params: { slug: string } }) {
         <h1 className="text-headline-lg font-headline-lg text-primary mb-4">Acara Telah Selesai</h1>
         <p className="text-body-lg text-on-surface-variant max-w-md">
           Terima kasih telah berpartisipasi dalam pernikahan {eventName || 'ini'}! Semua memori telah tersimpan dengan aman dalam kapsul waktu digital.
+        </p>
+      </div>
+    );
+  }
+
+  if (eventStatus === 'NOT_FOUND') {
+    return (
+      <div className="bg-background text-on-surface min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <ThemeInjector slug={params.slug} />
+        <div className="w-24 h-24 bg-error-container rounded-full flex items-center justify-center mb-6 text-error">
+           <span className="material-symbols-outlined text-4xl">error</span>
+        </div>
+        <h1 className="text-headline-lg font-headline-lg text-primary mb-4">Acara Tidak Ditemukan</h1>
+        <p className="text-body-lg text-on-surface-variant max-w-md">
+          Kapsul waktu digital untuk pernikahan ini belum dibuat atau tidak tersedia. Silakan periksa kembali tautan yang diberikan.
         </p>
       </div>
     );

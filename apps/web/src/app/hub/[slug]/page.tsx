@@ -31,8 +31,18 @@ export default function BrideGroomHub({ params }: { params: { slug: string } }) 
   const [guestbookEntries, setGuestbookEntries] = useState<GuestbookEntry[]>([]);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [eventError, setEventError] = useState(false);
 
   const [thankYouMessage, setThankYouMessage] = useState("To our dearest family and friends, thank you for making our day so magical. These memories wouldn't be the same without you.");
+
+  useEffect(() => {
+    axios.get(`http://localhost:3001/events/${params.slug}`)
+      .catch(err => {
+        if (err.response && err.response.status === 404) {
+          setEventError(true);
+        }
+      });
+  }, [params.slug]);
 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +124,20 @@ export default function BrideGroomHub({ params }: { params: { slug: string } }) 
       setIsDownloading(false);
     }
   };
+
+  if (eventError) {
+    return (
+      <div className="min-h-screen bg-surface-container flex flex-col items-center justify-center p-6 text-center font-body-md text-on-surface">
+        <div className="w-24 h-24 bg-error-container rounded-full flex items-center justify-center mb-6 text-error">
+           <span className="material-symbols-outlined text-4xl">error</span>
+        </div>
+        <h1 className="text-headline-lg font-headline-lg text-primary mb-4">Acara Tidak Ditemukan</h1>
+        <p className="text-body-lg text-on-surface-variant max-w-md">
+          B&G Hub untuk acara ini tidak ditemukan. Silakan periksa kembali tautan Anda.
+        </p>
+      </div>
+    );
+  }
 
   if (isLocked) {
     return (

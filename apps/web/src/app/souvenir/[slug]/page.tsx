@@ -15,6 +15,16 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
   
   // Manual Fallback List
   const [unclaimedGuests, setUnclaimedGuests] = useState<any[]>([]);
+  const [eventError, setEventError] = useState(false);
+
+  useEffect(() => {
+    axios.get(`http://localhost:3001/events/${params.slug}`)
+      .catch(err => {
+        if (err.response && err.response.status === 404) {
+          setEventError(true);
+        }
+      });
+  }, [params.slug]);
 
   const fetchUnclaimed = async () => {
     try {
@@ -110,6 +120,20 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
       scanner.clear().catch(console.error);
     };
   }, [isLocked]);
+
+  if (eventError) {
+    return (
+      <div className="min-h-screen bg-surface-container flex flex-col items-center justify-center p-6 text-center font-body-md text-on-surface">
+        <div className="w-24 h-24 bg-error-container rounded-full flex items-center justify-center mb-6 text-error">
+           <span className="material-symbols-outlined text-4xl">error</span>
+        </div>
+        <h1 className="text-headline-lg font-headline-lg text-primary mb-4">Acara Tidak Ditemukan</h1>
+        <p className="text-body-lg text-on-surface-variant max-w-md">
+          Scanner Souvenir untuk acara ini tidak ditemukan. Silakan periksa kembali tautan Anda.
+        </p>
+      </div>
+    );
+  }
 
   if (isLocked) {
     return (

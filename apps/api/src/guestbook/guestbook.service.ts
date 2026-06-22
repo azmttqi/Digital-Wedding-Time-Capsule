@@ -11,16 +11,7 @@ export class GuestbookService {
     });
 
     if (!event) {
-      event = await this.prisma.event.create({
-        data: {
-          slug: data.eventSlug,
-          coupleName: "Pasangan " + data.eventSlug,
-          date: new Date(),
-          moderatorPin: "1234",
-          couplePassword: "password",
-          missionsJson: [],
-        }
-      });
+      throw new Error('Event not found');
     }
 
     return this.prisma.guestbookEntry.create({
