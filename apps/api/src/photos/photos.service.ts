@@ -43,18 +43,29 @@ export class PhotosService {
     });
   }
 
-  async getCapturesCount(range: 'today' | 'all' = 'today') {
+  async getCapturesCount(range: string = 'today') {
     if (range === 'all') {
       return this.prisma.photo.count();
     }
     
-    // today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    let targetDate = new Date();
+    if (range !== 'today') {
+      const parsed = new Date(range);
+      if (!isNaN(parsed.getTime())) {
+        targetDate = parsed;
+      }
+    }
+    
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
     return this.prisma.photo.count({
       where: {
         createdAt: {
-          gte: today,
+          gte: startOfDay,
+          lte: endOfDay,
         }
       }
     });

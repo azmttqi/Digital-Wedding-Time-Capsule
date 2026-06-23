@@ -12,7 +12,7 @@ export class PhotosController {
 
   @Get('stats/count')
   async getStats(@Query('range') range?: string) {
-    const validRange = range === 'all' ? 'all' : 'today';
+    const validRange = range || 'today';
     const count = await this.photosService.getCapturesCount(validRange);
     return { count };
   }

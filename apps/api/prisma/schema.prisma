@@ -28,6 +28,17 @@ model Event {
   createdAt       DateTime @default(now())
   photos          Photo[]
   guestbookEntries GuestbookEntry[]
+  tasks           Task[]
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  eventId   String?
+  text      String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  event     Event?   @relation(fields: [eventId], references: [id])
 }
 
 model GuestbookEntry {

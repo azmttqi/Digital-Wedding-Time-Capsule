@@ -8,6 +8,7 @@ import { PhotosModule } from './photos/photos.module';
 import { GuestbookModule } from './guestbook/guestbook.module';
 import { EventsModule } from './events/events.module';
 import { UploadModule } from './upload/upload.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UploadModule } from './upload/upload.module';
     GuestbookModule, 
     EventsModule,
     UploadModule,
+    TasksModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',

@@ -10,10 +10,45 @@ export default function Home() {
   const [showNav, setShowNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [capturesToday, setCapturesToday] = useState(0);
-  const [capturesRange, setCapturesRange] = useState<'today' | 'all'>('today');
+  const [capturesRange, setCapturesRange] = useState<string>('today');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isMounted, setIsMounted] = useState(false);
+  const [insightTip, setInsightTip] = useState("");
+  const [showInsight, setShowInsight] = useState(true);
   const router = useRouter();
+
+  const TIPS = [
+    {
+       text: "Tamu paling aktif mengunggah foto 20 menit sebelum resepsi dimulai. Pastikan Moderator sudah siap di tempat.",
+       author: "Sarah Jenkins",
+       role: "Chief Design Officer",
+       icon: "face_3"
+    },
+    {
+       text: "Acara dengan status 'LIVE' akan otomatis mengizinkan tamu masuk. Jangan lupa ubah status ke 'ENDED' setelah acara selesai.",
+       author: "System Bot",
+       role: "Automated Reminder",
+       icon: "robot_2"
+    },
+    {
+       text: "Kapasitas penyimpanan server masih sangat aman (99% kosong). Tidak perlu khawatir tamu mengunggah banyak foto.",
+       author: "DevOps",
+       role: "Infrastructure Monitoring",
+       icon: "dns"
+    },
+    {
+       text: "Anda dapat melihat daftar hadir dan pesan buku tamu yang belum diambil vouchernya di halaman Souvenir Scanner masing-masing acara.",
+       author: "User Guide",
+       role: "Product Team",
+       icon: "menu_book"
+    }
+  ];
+
+  useEffect(() => {
+    // Set random tip on mount
+    const randomTip = TIPS[Math.floor(Math.random() * TIPS.length)];
+    setInsightTip(randomTip as any);
+  }, []);
 
   const fetchEvents = async () => {
     try {
@@ -51,6 +86,32 @@ export default function Home() {
     router.push(`${pathPrefix}${slug}`);
   };
 
+  const handleExportData = () => {
+    if (eventsList.length === 0) {
+      alert("Tidak ada data acara untuk diekspor.");
+      return;
+    }
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Nama Acara,Slug,Tanggal,Status,Total Foto\n";
+    
+    eventsList.forEach(event => {
+      const name = `"${event.coupleName.replace(/"/g, '""')}"`;
+      const date = new Date(event.date || Date.now()).toLocaleDateString('id-ID');
+      // Estimating total photos from photos array length if populated, otherwise 0
+      const totalPhotos = event.photos ? event.photos.length : 0;
+      csvContent += `${name},${event.slug},${date},${event.status},${totalPhotos}\n`;
+    });
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "semua_data_acara_eo.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -80,30 +141,61 @@ export default function Home() {
             <h1 className="text-headline-md font-headline-md text-on-surface tracking-tight">Digital Wedding Time Capsule</h1>
             <p className="text-[10px] text-primary uppercase tracking-widest font-bold">Organizer Dashboard</p>
           </div>
-          <div className="flex items-center gap-4 flex-1 max-w-md mx-6">
+          <div className="flex items-center gap-4 flex-1 max-w-3xl mx-6">
             <div className="relative w-full hidden sm:block">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <span className="material-symbols-outlined text-outline">search</span>
               </div>
               <input
                 type="text"
-                className="w-full bg-surface-container-high border border-outline-variant/30 rounded-full py-2 pl-10 pr-4 focus:outline-none focus:ring-1 focus:ring-primary text-on-surface text-body-md"
+                className="w-full h-11 bg-surface-container-high border border-outline-variant/30 rounded-full pl-11 pr-4 focus:outline-none focus:ring-1 focus:ring-primary text-on-surface text-body-md"
                 placeholder="Search events by name or slug..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <select 
-              value={capturesRange} 
-              onChange={(e) => setCapturesRange(e.target.value as 'today' | 'all')}
-              className="bg-surface-container-high border border-outline-variant/30 text-body-md font-body-md rounded-full px-4 py-2 text-on-surface focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer hidden md:block"
-            >
-              <option value="today">Today</option>
-              <option value="all">All Time</option>
-            </select>
+            <div className="hidden md:flex flex-shrink-0 items-stretch bg-surface-container-high rounded-full p-1 border border-outline-variant/30 h-11">
+              <input 
+                type="date" 
+                title="Select Specific Date"
+                value={capturesRange === 'all' ? '' : (capturesRange === 'today' ? new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0] : capturesRange)}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    // Check if selected date is today
+                    const todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+                    if (e.target.value === todayStr) {
+                       setCapturesRange('today');
+                    } else {
+                       setCapturesRange(e.target.value);
+                    }
+                  } else {
+                    setCapturesRange('all');
+                  }
+                }}
+                className="bg-transparent border-none outline-none text-body-md font-body-md px-3 text-on-surface focus:ring-0 cursor-pointer h-full m-0"
+              />
+              <button 
+                onClick={() => setCapturesRange('all')}
+                className={`whitespace-nowrap px-5 rounded-full text-body-md font-body-md transition-all h-full flex items-center ${capturesRange === 'all' ? 'bg-primary text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-highest'}`}
+              >
+                All Time
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/register')} className="bg-primary text-on-primary px-6 py-2 rounded-full font-label-md text-label-md hover:bg-primary/90 transition-all shadow-md flex-shrink-0">Create Event</button>
+          <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
+            {/* Toggle Insight Button */}
+            <button 
+              onClick={() => setShowInsight(!showInsight)} 
+              className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors relative ${showInsight ? 'bg-primary-container text-primary' : 'hover:bg-surface-container-high text-on-surface-variant'}`}
+              title="Toggle Organizer Insight"
+            >
+              <span className="material-symbols-outlined">lightbulb</span>
+              {!showInsight && (
+                <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full border-2 border-surface"></span>
+              )}
+            </button>
+
+            <button onClick={() => router.push('/register')} className="bg-primary text-on-primary h-11 px-6 flex items-center justify-center rounded-full font-label-md text-label-md hover:bg-primary/90 transition-all shadow-md">Create Event</button>
           </div>
         </div>
       </header>
@@ -128,9 +220,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* High Level Stats Bento */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-stack-xl">
-          <div className="glass-card bento-hover p-8 rounded-3xl flex flex-col justify-between overflow-hidden relative group">
+        {/* High Level Stats & Quick Links Bento */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-stack-xl">
+          {/* Active Events */}
+          <div className="glass-card bento-hover p-6 rounded-3xl flex flex-col justify-between overflow-hidden relative group">
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary-container/20 rounded-full blur-2xl"></div>
             <div>
               <span className="text-label-sm font-label-sm text-primary uppercase tracking-widest mb-4 block">Active Events</span>
@@ -141,18 +234,22 @@ export default function Home() {
               <span className="text-label-sm font-label-sm">Growing steadily</span>
             </div>
           </div>
-          <div className="glass-card bento-hover p-8 rounded-3xl flex flex-col justify-between relative overflow-hidden group">
+          
+          {/* Captures */}
+          <div className="glass-card bento-hover p-6 rounded-3xl flex flex-col justify-between relative overflow-hidden group">
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-tertiary-container/20 rounded-full blur-2xl"></div>
             <div>
-              <span className="text-label-sm font-label-sm text-tertiary uppercase tracking-widest mb-4 block">Captures ({capturesRange === 'today' ? 'Today' : 'All Time'})</span>
+              <span className="text-label-sm font-label-sm text-tertiary uppercase tracking-widest mb-4 block">Captures</span>
               <h3 className="text-display-lg font-display-lg text-tertiary">{capturesToday}</h3>
             </div>
             <div className="flex items-center gap-2 mt-4 text-on-surface-variant relative z-10">
               <span className="material-symbols-outlined text-sm">photo_camera</span>
-              <span className="text-label-sm font-label-sm">High engagement detected</span>
+              <span className="text-label-sm font-label-sm">{capturesRange === 'today' ? 'Today' : capturesRange === 'all' ? 'All Time' : new Date(capturesRange).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'})}</span>
             </div>
           </div>
-          <div className="glass-card bento-hover p-8 rounded-3xl flex flex-col justify-between relative overflow-hidden group">
+          
+          {/* System Status */}
+          <div className="glass-card bento-hover p-6 rounded-3xl flex flex-col justify-between relative overflow-hidden group">
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary-container/30 rounded-full blur-2xl"></div>
             <div>
               <span className="text-label-sm font-label-sm text-primary uppercase tracking-widest mb-4 block">System Status</span>
@@ -163,7 +260,34 @@ export default function Home() {
               <span className="text-label-sm font-label-sm">All services optimal</span>
             </div>
           </div>
+
+          {/* Manager Quick Links */}
+          <div className="glass-card p-6 rounded-3xl flex flex-col justify-between relative overflow-hidden bg-surface-container-low">
+            <div>
+              <span className="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-widest mb-4 block">Quick Links</span>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <button onClick={() => router.push('/organizer/tasks')} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-surface-bright hover:bg-primary-container/20 border border-outline-variant/20 transition-all text-on-surface gap-1">
+                  <span className="material-symbols-outlined text-primary text-xl">assignment</span>
+                  <span className="text-[10px] font-label-sm font-bold uppercase text-center">Tasks</span>
+                </button>
+                <button onClick={() => router.push('/organizer/vendors')} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-surface-bright hover:bg-primary-container/20 border border-outline-variant/20 transition-all text-on-surface gap-1">
+                  <span className="material-symbols-outlined text-primary text-xl">contacts</span>
+                  <span className="text-[10px] font-label-sm font-bold uppercase text-center">Vendors</span>
+                </button>
+                <button onClick={() => router.push('/organizer/analytics')} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-surface-bright hover:bg-primary-container/20 border border-outline-variant/20 transition-all text-on-surface gap-1">
+                  <span className="material-symbols-outlined text-primary text-xl">analytics</span>
+                  <span className="text-[10px] font-label-sm font-bold uppercase text-center">Analytics</span>
+                </button>
+                <button onClick={handleExportData} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-surface-bright hover:bg-primary-container/20 border border-outline-variant/20 transition-all text-on-surface gap-1">
+                  <span className="material-symbols-outlined text-primary text-xl">cloud_download</span>
+                  <span className="text-[10px] font-label-sm font-bold uppercase text-center">Export</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </section>
+
+
 
         {/* Active Events List */}
         <section className="mb-stack-xl">
@@ -266,55 +390,33 @@ export default function Home() {
             ))}
           </div>
         </section>
-
-        {/* Quick Actions & Tips */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
-          <div className="glass-card p-8 rounded-3xl">
-            <h3 className="text-headline-md font-headline-md text-on-surface mb-6">Manager Quick Links</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <button className="flex items-center gap-3 p-4 rounded-2xl bg-surface-bright hover:bg-primary-container/10 border border-outline-variant/20 transition-all text-on-surface">
-                <span className="material-symbols-outlined text-primary">assignment</span>
-                <span className="font-label-md text-label-md">Task List</span>
-              </button>
-              <button className="flex items-center gap-3 p-4 rounded-2xl bg-surface-bright hover:bg-primary-container/10 border border-outline-variant/20 transition-all text-on-surface">
-                <span className="material-symbols-outlined text-primary">contacts</span>
-                <span className="font-label-md text-label-md">Vendor CRM</span>
-              </button>
-              <button className="flex items-center gap-3 p-4 rounded-2xl bg-surface-bright hover:bg-primary-container/10 border border-outline-variant/20 transition-all text-on-surface">
-                <span className="material-symbols-outlined text-primary">analytics</span>
-                <span className="font-label-md text-label-md">Event Analytics</span>
-              </button>
-              <button className="flex items-center gap-3 p-4 rounded-2xl bg-surface-bright hover:bg-primary-container/10 border border-outline-variant/20 transition-all text-on-surface">
-                <span className="material-symbols-outlined text-primary">cloud_download</span>
-                <span className="font-label-md text-label-md">Export All Data</span>
-              </button>
-            </div>
-          </div>
-          
-          <div className="bg-primary/5 p-8 rounded-3xl border border-primary/10 relative overflow-hidden">
-            <div className="relative z-10">
-              <h3 className="text-headline-md font-headline-md text-primary mb-4">Organizer Insight</h3>
-              <p className="text-body-lg font-body-lg text-on-primary-container mb-6 italic">
-                "Guests are most active 20 minutes before the ceremony. Ensure your Moderator is live to welcome them into the digital portal."
-              </p>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-primary-container flex items-center justify-center">
-                   <span className="material-symbols-outlined text-primary">face_3</span>
-                </div>
-                <div>
-                  <p className="font-label-md text-label-md text-on-primary-container">Sarah Jenkins</p>
-                  <p className="text-label-sm font-label-sm text-on-primary-container/70">Chief Design Officer</p>
-                </div>
-              </div>
-            </div>
-            <div className="absolute -right-8 -bottom-8 opacity-10">
-              <span className="material-symbols-outlined text-[120px]">tips_and_updates</span>
-            </div>
-          </div>
-        </section>
       </main>
 
-
-    </div>
+      {/* Floating Organizer Insight */}
+      {showInsight && insightTip && (
+        <div className="fixed bottom-6 right-6 max-w-sm z-50 animate-in slide-in-from-bottom-8 fade-in duration-500">
+          <div className="bg-surface/90 backdrop-blur-md border border-outline-variant/30 shadow-2xl p-5 rounded-3xl relative overflow-hidden">
+            <button onClick={() => setShowInsight(false)} className="absolute top-4 right-4 text-on-surface-variant hover:text-error transition-colors">
+              <span className="material-symbols-outlined text-sm">close</span>
+            </button>
+            <div className="flex items-center gap-2 mb-3 text-primary">
+               <span className="material-symbols-outlined text-sm">tips_and_updates</span>
+               <h3 className="text-label-sm font-label-sm uppercase tracking-widest">Organizer Insight</h3>
+            </div>
+            <p className="text-body-md font-body-md text-on-surface mb-4">
+              "{(insightTip as any).text}"
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-primary-container flex items-center justify-center flex-shrink-0">
+                 <span className="material-symbols-outlined text-primary text-sm">{(insightTip as any).icon}</span>
+              </div>
+              <div>
+                <p className="font-label-sm text-label-sm text-on-surface">{(insightTip as any).author}</p>
+                <p className="text-[10px] text-on-surface-variant">{(insightTip as any).role}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}</div>
   );
 }
