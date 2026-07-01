@@ -133,7 +133,20 @@ export default function Home() {
 
 
   return (
-    <div className="bg-background text-on-surface font-body-md overflow-x-hidden min-h-screen">
+    <div className="bg-background text-on-surface font-body-md overflow-x-hidden min-h-screen relative">
+      {/* Transparent Background Image */}
+      <div 
+        className="fixed inset-0 z-0 opacity-30 pointer-events-none"
+        style={{
+          backgroundImage: "url('/dashboard-bg.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      ></div>
+      
+      {/* Content Wrapper */}
+      <div className="relative z-10">
       {/* TopNavBar */}
       <header className={`bg-surface/70 backdrop-blur-md dark:bg-surface-container/70 border-b border-white/20 dark:border-outline-variant/20 shadow-sm transition-transform duration-300 ease-in-out fixed top-0 w-full z-50 left-0 ${showNav ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
@@ -417,6 +430,8 @@ export default function Home() {
             </div>
           </div>
         </div>
-      )}</div>
+      )}
+      </div>
+    </div>
   );
 }
