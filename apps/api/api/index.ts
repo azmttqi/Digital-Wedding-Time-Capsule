@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
@@ -24,3 +25,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const server = await bootstrap();
   server(req, res);
 }
+
