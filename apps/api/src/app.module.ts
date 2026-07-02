@@ -10,6 +10,14 @@ import { EventsModule } from './events/events.module';
 import { UploadModule } from './upload/upload.module';
 import { TasksModule } from './tasks/tasks.module';
 
+import { existsSync, mkdirSync } from 'fs';
+import * as process from 'process';
+
+const uploadPath = process.env.VERCEL ? '/tmp/uploads' : join(__dirname, '..', 'uploads');
+if (!existsSync(uploadPath)) {
+  mkdirSync(uploadPath, { recursive: true });
+}
+
 @Module({
   imports: [
     PrismaModule, 
@@ -19,7 +27,7 @@ import { TasksModule } from './tasks/tasks.module';
     UploadModule,
     TasksModule,
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
+      rootPath: uploadPath,
       serveRoot: '/uploads',
     }),
   ],

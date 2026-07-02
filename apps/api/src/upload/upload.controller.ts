@@ -2,13 +2,14 @@ import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException } 
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import * as process from 'process';
 
 @Controller('upload')
 export class UploadController {
   @Post()
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploads',
+      destination: process.env.VERCEL ? '/tmp/uploads' : './uploads',
       filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const ext = extname(file.originalname);
