@@ -36,7 +36,7 @@ export default function BrideGroomHub({ params }: { params: { slug: string } }) 
   const [thankYouMessage, setThankYouMessage] = useState("To our dearest family and friends, thank you for making our day so magical. These memories wouldn't be the same without you.");
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/events/${params.slug}`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}`)
       .catch(err => {
         if (err.response && err.response.status === 404) {
           setEventError(true);
@@ -47,7 +47,7 @@ export default function BrideGroomHub({ params }: { params: { slug: string } }) 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`http://localhost:3001/events/${params.slug}/verify`, {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}/verify`, {
         role: "hub",
         pin: pinInput
       });
@@ -62,11 +62,11 @@ export default function BrideGroomHub({ params }: { params: { slug: string } }) 
 
   useEffect(() => {
     if (!isLocked) {
-      axios.get(`http://localhost:3001/photos/${params.slug}?status=APPROVED`)
+      axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/photos/${params.slug}?status=APPROVED`)
         .then(res => setPhotos(res.data))
         .catch(err => console.error("Gagal memuat foto:", err));
         
-      axios.get(`http://localhost:3001/guestbook/${params.slug}`)
+      axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/guestbook/${params.slug}`)
         .then(res => setGuestbookEntries(res.data))
         .catch(err => console.error("Gagal memuat buku tamu:", err));
     }

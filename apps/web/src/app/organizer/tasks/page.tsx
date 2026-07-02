@@ -12,7 +12,7 @@ export default function TaskList() {
 
   const fetchTasks = async () => {
     try {
-      const res = await axios.get('http://localhost:3001/tasks');
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tasks`);
       setTasks(res.data);
     } catch(err) {
       console.error(err);
@@ -29,7 +29,7 @@ export default function TaskList() {
     e.preventDefault();
     if (!newTask.trim()) return;
     try {
-      await axios.post('http://localhost:3001/tasks/global', { text: newTask });
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tasks/global`, { text: newTask });
       setNewTask("");
       fetchTasks();
     } catch(err) {
@@ -39,7 +39,7 @@ export default function TaskList() {
 
   const toggleTask = async (task: any) => {
     try {
-      await axios.patch(`http://localhost:3001/tasks/${task.id}`, { completed: !task.completed });
+      await axios.patch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tasks/${task.id}`, { completed: !task.completed });
       fetchTasks();
     } catch(err) {
       console.error(err);
@@ -48,7 +48,7 @@ export default function TaskList() {
 
   const deleteTask = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:3001/tasks/${id}`);
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tasks/${id}`);
       fetchTasks();
     } catch(err) {
       console.error(err);

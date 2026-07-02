@@ -12,7 +12,7 @@ export default function EventAnalytics() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await axios.get("http://localhost:3001/events");
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/events`);
         setEvents(res.data);
       } catch (error) {
         console.error("Gagal memuat data event:", error);

@@ -24,7 +24,7 @@ export default function EventLobby({ params }: { params: { slug: string } }) {
   
   useEffect(() => {
     // Fetch Event Data
-    axios.get(`http://localhost:3001/events/${params.slug}`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}`)
       .then(res => setEventData(res.data))
       .catch(err => {
         console.error("Error fetching event", err);
@@ -34,7 +34,7 @@ export default function EventLobby({ params }: { params: { slug: string } }) {
       });
 
     // Fetch Guestbook Stats
-    axios.get(`http://localhost:3001/guestbook/${params.slug}`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/guestbook/${params.slug}`)
       .then(res => {
         const guests = res.data;
         const totalGuests = guests.length;
@@ -45,7 +45,7 @@ export default function EventLobby({ params }: { params: { slug: string } }) {
       .catch(err => console.error(err));
 
     // Fetch Photos Stats
-    axios.get(`http://localhost:3001/photos/${params.slug}`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/photos/${params.slug}`)
       .then(res => {
         const photos = res.data;
         const totalPhotos = photos.length;
@@ -83,7 +83,7 @@ export default function EventLobby({ params }: { params: { slug: string } }) {
     e.preventDefault();
     setPasswordError("");
     try {
-      const res = await axios.post(`http://localhost:3001/events/${params.slug}/verify`, { 
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}/verify`, { 
         role: "admin",
         pin: passwordInput 
       });
@@ -100,7 +100,7 @@ export default function EventLobby({ params }: { params: { slug: string } }) {
 
   const fetchTasks = async () => {
     try {
-      const res = await axios.get(`http://localhost:3001/tasks/event/${params.slug}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tasks/event/${params.slug}`);
       setTasks(res.data);
     } catch(err) {
       console.error(err);
@@ -111,7 +111,7 @@ export default function EventLobby({ params }: { params: { slug: string } }) {
     e.preventDefault();
     if (!newTask.trim()) return;
     try {
-      await axios.post(`http://localhost:3001/tasks/event/${params.slug}`, { text: newTask });
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tasks/event/${params.slug}`, { text: newTask });
       setNewTask("");
       fetchTasks();
     } catch(err) { console.error(err); }
@@ -119,14 +119,14 @@ export default function EventLobby({ params }: { params: { slug: string } }) {
   
   const handleToggleTask = async (task: any) => {
     try {
-      await axios.patch(`http://localhost:3001/tasks/${task.id}`, { completed: !task.completed });
+      await axios.patch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tasks/${task.id}`, { completed: !task.completed });
       fetchTasks();
     } catch(err) { console.error(err); }
   };
 
   const handleDeleteTask = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:3001/tasks/${id}`);
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/tasks/${id}`);
       fetchTasks();
     } catch(err) { console.error(err); }
   };

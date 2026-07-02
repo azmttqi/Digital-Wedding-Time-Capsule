@@ -20,7 +20,7 @@ export default function LiveWall({ params }: { params: { slug: string } }) {
 
   const fetchApprovedPhotos = async () => {
     try {
-      const res = await axios.get(`http://localhost:3001/photos/${params.slug}?status=APPROVED`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/photos/${params.slug}?status=APPROVED`);
       setPhotos(res.data);
     } catch (error) {
       console.error("Gagal memuat live wall:", error);
@@ -28,7 +28,7 @@ export default function LiveWall({ params }: { params: { slug: string } }) {
   };
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/events/${params.slug}`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}`)
       .catch(err => {
         if (err.response && err.response.status === 404) {
           setEventError(true);

@@ -21,7 +21,7 @@ export default function ThemeInjector({ slug, themeOverride }: { slug: string, t
 
     if (!slug) return;
     
-    axios.get(`http://localhost:3001/events/${slug}`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${slug}`)
       .then(res => {
         const themeName = res.data.theme || "rose";
         if (THEME_MAP[themeName]) {

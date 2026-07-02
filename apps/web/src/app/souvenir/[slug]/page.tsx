@@ -18,7 +18,7 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
   const [eventError, setEventError] = useState(false);
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/events/${params.slug}`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}`)
       .catch(err => {
         if (err.response && err.response.status === 404) {
           setEventError(true);
@@ -28,7 +28,7 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
 
   const fetchUnclaimed = async () => {
     try {
-      const res = await axios.get(`http://localhost:3001/guestbook/${params.slug}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/guestbook/${params.slug}`);
       const unclaimed = res.data.filter((g: any) => !g.souvenirClaimed);
       setUnclaimedGuests(unclaimed);
     } catch(err) {
@@ -38,7 +38,7 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
 
   const handleManualClaim = async (id: string, name: string, pax: number) => {
     try {
-      await axios.patch(`http://localhost:3001/guestbook/entry/${id}/claim`);
+      await axios.patch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/guestbook/entry/${id}/claim`);
       setScanResult({
         success: true,
         message: "Berhasil Diklaim Manual!",
@@ -55,7 +55,7 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`http://localhost:3001/events/${params.slug}/verify`, {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}/verify`, {
         role: "souvenir",
         pin: pinInput
       });
@@ -82,7 +82,7 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
       scanner.pause();
       
       try {
-        const checkRes = await axios.get(`http://localhost:3001/guestbook/entry/${decodedText}`);
+        const checkRes = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/guestbook/entry/${decodedText}`);
         const entry = checkRes.data;
 
         if (!entry) {
@@ -94,7 +94,7 @@ export default function SouvenirScanner({ params }: { params: { slug: string } }
           });
         } else {
           // Claim it!
-          await axios.patch(`http://localhost:3001/guestbook/entry/${decodedText}/claim`);
+          await axios.patch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/guestbook/entry/${decodedText}/claim`);
           setScanResult({
             success: true,
             message: "Berhasil Diklaim!",

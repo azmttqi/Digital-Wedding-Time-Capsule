@@ -17,7 +17,7 @@ export default function AdminDashboard({ params }: { params: { slug: string } })
   const [eventError, setEventError] = useState(false);
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/events/${params.slug}`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}`)
       .catch(err => {
         if (err.response && err.response.status === 404) {
           setEventError(true);
@@ -37,7 +37,7 @@ export default function AdminDashboard({ params }: { params: { slug: string } })
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`http://localhost:3001/events/${params.slug}/verify`, {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}/verify`, {
         role: "admin",
         pin: pinInput
       });
@@ -53,7 +53,7 @@ export default function AdminDashboard({ params }: { params: { slug: string } })
 
   const fetchSettings = async () => {
     try {
-      const res = await axios.get(`http://localhost:3001/events/${params.slug}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}`);
       setFormData(prev => ({ 
         ...prev, 
         theme: res.data.theme || "rose", 
@@ -70,7 +70,7 @@ export default function AdminDashboard({ params }: { params: { slug: string } })
     e.preventDefault();
     setIsLoading(true);
     try {
-      await axios.patch(`http://localhost:3001/events/${params.slug}/settings`, formData);
+      await axios.patch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}/settings`, formData);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch(err) {
@@ -89,7 +89,7 @@ export default function AdminDashboard({ params }: { params: { slug: string } })
     
     setIsUploading(true);
     try {
-      const res = await axios.post('http://localhost:3001/upload', formData, {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setFormData(prev => ({...prev, coverImageUrl: res.data.url}));
@@ -172,7 +172,7 @@ export default function AdminDashboard({ params }: { params: { slug: string } })
                   const newStatus = e.target.value;
                   setFormData(prev => ({...prev, status: newStatus}));
                   try {
-                    await axios.patch(`http://localhost:3001/events/${params.slug}/status`, { status: newStatus });
+                    await axios.patch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}/status`, { status: newStatus });
                   } catch (err) {
                     alert("Gagal mengubah status");
                   }

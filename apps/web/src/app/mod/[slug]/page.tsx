@@ -32,7 +32,7 @@ export default function ModeratorDashboard({ params }: { params: { slug: string 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`http://localhost:3001/events/${params.slug}/verify`, {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}/verify`, {
         role: "mod",
         pin: pinInput
       });
@@ -49,9 +49,9 @@ export default function ModeratorDashboard({ params }: { params: { slug: string 
     if (isLocked) return;
     try {
       const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
-        axios.get(`http://localhost:3001/photos/${params.slug}?status=PENDING`),
-        axios.get(`http://localhost:3001/photos/${params.slug}?status=APPROVED`),
-        axios.get(`http://localhost:3001/photos/${params.slug}?status=REJECTED`),
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/photos/${params.slug}?status=PENDING`),
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/photos/${params.slug}?status=APPROVED`),
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/photos/${params.slug}?status=REJECTED`),
       ]);
       setPendingPhotos(pendingRes.data);
       setApprovedPhotos(approvedRes.data);
@@ -75,7 +75,7 @@ export default function ModeratorDashboard({ params }: { params: { slug: string 
 
   useEffect(() => {
     // Check if event exists
-    axios.get(`http://localhost:3001/events/${params.slug}`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}`)
       .catch(err => {
         if (err.response && err.response.status === 404) {
           setEventError(true);
@@ -109,7 +109,7 @@ export default function ModeratorDashboard({ params }: { params: { slug: string 
     }
 
     try {
-      await axios.patch(`http://localhost:3001/photos/${currentPhotoId}/status`, { status });
+      await axios.patch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/photos/${currentPhotoId}/status`, { status });
     } catch (error) {
       console.error("Gagal mengupdate status:", error);
       fetchPhotos(); // Revert on failure

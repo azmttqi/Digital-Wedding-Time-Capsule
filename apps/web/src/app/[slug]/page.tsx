@@ -62,7 +62,7 @@ export default function GuestView({ params }: { params: { slug: string } }) {
       setHasSignedGuestbook(true);
     }
 
-    axios.get(`http://localhost:3001/events/${params.slug}`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${params.slug}`)
       .then(res => {
          setEventStatus(res.data.status || 'LIVE');
          setEventName(res.data.name || params.slug);
@@ -76,7 +76,7 @@ export default function GuestView({ params }: { params: { slug: string } }) {
          }
       });
 
-    axios.get(`http://localhost:3001/photos/${params.slug}?status=APPROVED`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/photos/${params.slug}?status=APPROVED`)
       .then(res => setApprovedPhotos(res.data))
       .catch(err => console.error("Gagal memuat galeri:", err));
   }, [params.slug]);
@@ -86,7 +86,7 @@ export default function GuestView({ params }: { params: { slug: string } }) {
     if (ticketId && !isTicketClaimed) {
       const interval = setInterval(async () => {
         try {
-          const res = await axios.get(`http://localhost:3001/guestbook/entry/${ticketId}`);
+          const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/guestbook/entry/${ticketId}`);
           if (res.data && res.data.souvenirClaimed) {
             setIsTicketClaimed(true);
             localStorage.setItem(`guest_ticket_claimed_${params.slug}`, 'true');
@@ -105,7 +105,7 @@ export default function GuestView({ params }: { params: { slug: string } }) {
     if (!guestName.trim()) return alert("Please enter your name.");
     setIsSubmittingGuestbook(true);
     try {
-      const res = await axios.post("http://localhost:3001/guestbook", {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/guestbook`, {
         eventSlug: params.slug,
         name: guestName.trim(),
         message: guestMessage.trim(),
@@ -175,7 +175,7 @@ export default function GuestView({ params }: { params: { slug: string } }) {
 
       const { data: publicUrlData } = supabase.storage.from('photos').getPublicUrl(filePath);
 
-      await axios.post('http://localhost:3001/photos', {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/photos`, {
         eventSlug: params.slug,
         url: publicUrlData.publicUrl,
         uploaderName: uploaderName.trim() || 'Guest', 

@@ -70,7 +70,7 @@ export default function RegisterEvent() {
     try {
       // Check if event already exists
       try {
-        await axios.get(`http://localhost:3001/events/${formData.slug}`);
+        await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events/${formData.slug}`);
         setErrorMsg("Tautan (Slug) ini sudah dipakai. Silakan gunakan nama lain.");
         setIsLoading(false);
         setStep(2); // Go back to slug step
@@ -82,7 +82,7 @@ export default function RegisterEvent() {
       }
 
       // Create new event
-      await axios.post(`http://localhost:3001/events`, formData);
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/events`, formData);
       
       // Success! Go to lobby
       router.push(`/lobby/${formData.slug}`);

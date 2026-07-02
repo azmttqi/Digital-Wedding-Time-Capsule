@@ -52,7 +52,7 @@ export default function Home() {
 
   const fetchEvents = async () => {
     try {
-      const res = await axios.get("http://localhost:3001/events");
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/events`);
       setEventsList(res.data);
     } catch(err) {
       console.error(err);
@@ -61,7 +61,7 @@ export default function Home() {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`http://localhost:3001/photos/stats/count?range=${capturesRange}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/photos/stats/count?range=${capturesRange}`);
       setCapturesToday(res.data.count);
     } catch(err) {
       console.error(err);
